@@ -1,4 +1,4 @@
-class Node {
+export class BTNode {
   data;
   left;
   right;
@@ -10,22 +10,29 @@ class Node {
   }
 };
 
-class BinarySearchTree {
+export class BinarySearchTree {
   root;
-  constructor(array, side) {
+  constructor(array, side, root) {
     if (array.length === 0) {
       this.root = null;
       return;
     }
 
     if (array.length === 1) {
-      this.root = new Node(array[0]);
+      this.root = new BTNode(array[0]);
       this.root.left = null;
       this.root.right = null;
       return;
     }
 
     side = side || 'L';
+    root = root || true;
+
+    if(root === true) {
+      array = array.
+        sort((a, b) => a - b).
+        filter((item, index, self) => self.indexOf(item) === index);
+    }
 
     // console.log('side: ', side);
     // console.log(array);
@@ -61,15 +68,15 @@ class BinarySearchTree {
     // console.log(la);
     // console.log(ra);
 
-    this.root = new Node(array[middle]);
+    this.root = new BTNode(array[middle]);
 
-    this.root.left = new BinarySearchTree(la, 'L').root;
+    this.root.left = new BinarySearchTree(la, 'L', false).root;
 
-    this.root.right = new BinarySearchTree(ra, 'R').root;
+    this.root.right = new BinarySearchTree(ra, 'R', false).root;
   }
   insert(data) {
     let node = this.root;
-    let dummy = new Node(data);
+    let dummy = new BTNode(data);
 
     while(node !== null){
       if (dummy.data > node.data) {
@@ -92,7 +99,7 @@ class BinarySearchTree {
   delete(data) {
     let node = this.root;
     let dummy;
-    const deleted = new Node(data);
+    const deleted = new BTNode(data);
 
     while(node !== null) {
       // if the node to be deleted is greater than the node
@@ -111,7 +118,10 @@ class BinarySearchTree {
           }
           // if has a two childs
           if ((node.right.left !== null) && (node.right.right !== null)) {
-            // TODO: Implement inorder to substitute the value
+            let is = this.inorderSucessor(data);
+            this.delete(is);
+            node.right.data = is;
+
             return;
           }
           //if only has one child
@@ -144,7 +154,10 @@ class BinarySearchTree {
           }
           //if has two childs
           if ((node.left.left !== null) && (node.left.right !== null)) {
-            // TODO: Implement inorder to substitute the value
+            let is = this.inorderSucessor(data);
+            this.delete(is);
+            node.left.data = is;
+
             return;
           }
           //if only has one child
@@ -169,7 +182,7 @@ class BinarySearchTree {
   }
   find(data) {
     let node = this.root;
-    let toFind = new Node(data);
+    let toFind = new BTNode(data);
     while(node !== null) {
 
       if(node.data === toFind.data) {
@@ -233,7 +246,7 @@ class BinarySearchTree {
   depth(node) {
     let _depth = 0;
     let _node = this.root;
-    let dnode = new Node(node);
+    let dnode = new BTNode(node);
 
 
     while(_node !== null) {
@@ -283,49 +296,39 @@ class BinarySearchTree {
 
     return true;
   }
+  balance() {
+    let inorder_arr = [];
 
+    this.inOrder(this.root, (node) => { inorder_arr.push(node); })
+
+    this.root = new BinarySearchTree(inorder_arr).root;
+  }
+  inorderSucessor(data) {
+    let prev = null;
+    let actual = null;
+    let _succesor = null;
+
+    this.inOrder(this.root, (node) => {
+      actual = node;
+      if(prev === data) {
+        _succesor = actual;
+      };
+
+      prev = actual;
+    });
+
+    return _succesor;
+  }
+  prettyPrint(node, prefix = "", isLeft = true) {
+    if (node === null) {
+      return;
+    }
+    if (node.right !== null) {
+      this.prettyPrint(node.right, `${prefix}${isLeft ? "│   " : "    "}`, false);
+    }
+    console.log(`${prefix}${isLeft ? "└── " : "┌── "}${node.data}`);
+    if (node.left !== null) {
+      this.prettyPrint(node.left, `${prefix}${isLeft ? "    " : "│   "}`, true);
+    }
+  };
 };
-
-
-let arr = [1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 345];
-let arr2 = [1, 2, 3, 4, 5, 6, 7];
-let arr3 = [2, 5, 8, 10, 12, 15, 18];
-let arr4 = [3, 6, 9, 12, 15, 18];
-let arr5 = [7, 12, 14, 15, 20, 23, 27, 88];
-let arr6 = [20, 30, 32, 34, 36, 40, 50, 60, 65, 70, 75, 80, 85];
-arr = arr.
-  sort((a, b) => a - b).
-  filter((item, index, self) => self.indexOf(item) === index);
-
-const BST = new BinarySearchTree(arr6, 'L');
-//BST.insert(5);
-//BST.delete(85);
-//console.log(BST.find(75));
-//console.log("level order traversal:")
-//BST.levelOrder((node) => { console.log(node) });
-//console.log("InOrder traversal")
-//BST.inOrder(BST.root, (node) => { console.log(node)} );
-//console.log("PreOrder traversal")
-//BST.preOrder(BST.root, (node) => { console.log(node) });
-//console.log("PostOrder traversal")
-//BST.postOrder(BST.root, (node) => { console.log(node) } );
-//console.log(BST.depth(75));
-//console.log(BST.height(75));
-//console.log(BST.isBalanced());
-
-const prettyPrint = (node, prefix = "", isLeft = true) => {
-  if (node === null) {
-    return;
-  }
-  if (node.right !== null) {
-    prettyPrint(node.right, `${prefix}${isLeft ? "│   " : "    "}`, false);
-  }
-  console.log(`${prefix}${isLeft ? "└── " : "┌── "}${node.data}`);
-  if (node.left !== null) {
-    prettyPrint(node.left, `${prefix}${isLeft ? "    " : "│   "}`, true);
-  }
-};
-
-// console.log(BST);
-
-prettyPrint(BST.root);
